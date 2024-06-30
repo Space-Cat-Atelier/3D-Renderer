@@ -59,8 +59,20 @@ def translate(pos, trn):
         i[1] += trn[1]
         i[2] += trn[2]
 
-translate(points, [100, 100, 0])
-projection(points, 100)
+def rotateX(pos, angle):
+   for i in pos:
+      i[1] = i[1]*cos(degrees(angle)) - i[2]*sin(degrees(angle))
+      i[2] = i[1]*sin(degrees(angle)) + i[2]*cos(degrees(angle))
+
+def rotateY(pos, angle):
+   for i in pos:
+      i[0] = i[2]*sin(degrees(angle)) + i[0]*cos(degrees(angle))
+      i[2] = i[2]*cos(degrees(angle)) - i[0]*sin(degrees(angle))
+
+def rotateZ(pos, angle):
+   for i in pos:
+      i[0] = i[0]*cos(degrees(angle)) - i[1]*sin(degrees(angle))
+      i[1] = i[0]*sin(degrees(angle)) + i[1]*cos(degrees(angle))
 
 while run: #Game loop
     keys = pygame.key.get_pressed()
@@ -77,6 +89,19 @@ while run: #Game loop
         translate(points, [-5, 0, 0])
     elif keys[pygame.K_RIGHT]:
         translate(points, [5, 0, 0])
+
+    if keys[pygame.K_q]:
+        rotateX(points, 0.001)
+    elif keys[pygame.K_a]:
+        rotateX(points, -0.001)
+    if keys[pygame.K_w]:
+        rotateY(points, 0.001)
+    elif keys[pygame.K_s]:
+        rotateY(points, -0.001)
+    if keys[pygame.K_e]:
+        rotateZ(points, 0.001)
+    elif keys[pygame.K_d]:
+        rotateZ(points, -0.001)
 
     screen.fill(DDBLUE)
     draw_grid([0, 0], size, 50)
