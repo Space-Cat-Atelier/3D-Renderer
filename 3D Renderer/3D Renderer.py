@@ -49,6 +49,7 @@ trns_vec = pygame.Vector3(0, 0, 0)
 rota_vec = pygame.Vector3(0, 0, 0)
 cam_speed = 4
 turn_angle = 0.1
+focal_length = 100
 
 def draw_grid(pos, area, size):
     for x in range(pos[0], pos[0]+area[0], size):
@@ -66,30 +67,41 @@ def translate(pos, trn):
     pos[1] += trn.y
     pos[2] += trn.z
 
-def rotateAxisX(pos, angle):
-    pos[1] = pos[1]*cos(angle) - pos[2]*sin(angle)
-    pos[2] = pos[1]*sin(angle) + pos[2]*cos(angle)
+def Pitch(pos, angle):
+    y = pos[1]
+    z = pos[2]
+    pos[1] = y*cos(angle) - z*sin(angle)
+    pos[2] = y*sin(angle) + z*cos(angle)
 
-def rotateAxisY(pos, angle):
-    pos[0] = pos[2]*sin(angle) + pos[0]*cos(angle)
-    pos[2] = pos[2]*cos(angle) - pos[0]*sin(angle)
+def Yaw(pos, angle):
+    x = pos[0]
+    z = pos[2]
+    pos[0] = z*sin(angle) + x*cos(angle)
+    pos[2] = z*cos(angle) - x*sin(angle)
 
-def rotateAxisZ(pos, angle):
-    pos[0] = pos[0]*cos(angle) - pos[1]*sin(angle)
-    pos[1] = pos[0]*sin(angle) + pos[1]*cos(angle)
+def Roll(pos, angle):
+    x = pos[0]
+    y = pos[1]
+    pos[0] = x*cos(angle) - y*sin(angle)
+    pos[1] = x*sin(angle) + y*cos(angle)
 
 def rotate(pos, rota):
-    rotateAxisX(pos, rota.x)
-    rotateAxisY(pos, rota.y)
-    rotateAxisZ(pos, rota.z)
+    Pitch(pos, rota.x)
+    Yaw(pos, rota.y)
+    Roll(pos, rota.z)
 
-def project(pos, lines):
+def project(pos, lines, fcl):
     pos_prj = []
     for i in pos:
-        x_prj = i[0]
-        y_prj = i[1]
-        x_prj += w/2
-        y_prj += h/2
+        x = i[0]
+        y = i[1]
+        z = i[2]
+        try:
+            x_prj = (x*fcl)/(z+fcl)+w/2
+            y_prj = (y*fcl)/(z+fcl)+h/2
+        except:
+            x_prj = x
+            y_prj = y
         draw_point([x_prj, y_prj])
         pos_prj.append([x_prj, y_prj])
     for i in lines:
@@ -122,17 +134,22 @@ while run: #Game loop
         rota_vec.z = 0
 
     if keys[pygame.K_s]:
-        trns_vec.y = cam_speed
-    elif keys[pygame.K_w]:
         trns_vec.y = -cam_speed
+    elif keys[pygame.K_w]:
+        trns_vec.y = cam_speed
     else:
         trns_vec.y = 0
     if keys[pygame.K_d]:
-        trns_vec.x = cam_speed
-    elif keys[pygame.K_a]:
         trns_vec.x = -cam_speed
+    elif keys[pygame.K_a]:
+        trns_vec.x = cam_speed
     else:
         trns_vec.x = 0
+
+    if keys[pygame.K_i]:
+        focal_length += cam_speed/2
+    elif keys[pygame.K_o]:
+        focal_length -= cam_speed/2
 
     screen.fill(DDBLUE)
     draw_grid([0, 0], size, 50)
@@ -140,7 +157,7 @@ while run: #Game loop
     for i in points:
         translate(i, trns_vec)
         rotate(i, rota_vec)
-    project(points, edges)
+    project(points, edges, focal_length)
 
     pygame.display.flip() #Update screen
     clock.tick(60)
