@@ -48,7 +48,7 @@ edges = [[0, 4],
 trns_vec = pygame.Vector3(0, 0, 0)
 rota_vec = pygame.Vector3(0, 0, 0)
 cam_speed = 4
-turn_angle = 0.01
+turn_angle = 0.1
 
 def draw_grid(pos, area, size):
     for x in range(pos[0], pos[0]+area[0], size):
@@ -56,11 +56,9 @@ def draw_grid(pos, area, size):
             pygame.draw.rect(screen, PEACOCK, pygame.Rect(x, y, size, size), 1)
 
 def draw_point(pos):
-    pygame.draw.circle(screen, BLACK, [pos[0], pos[1]], 10)
     pygame.draw.circle(screen, WHITE, [pos[0], pos[1]], 7)
 
 def draw_edge(pos1, pos2):
-    pygame.draw.line(screen, BLACK, pos1, pos2, 10)
     pygame.draw.line(screen, LBLUE, pos1, pos2, 7)
 
 def translate(pos, trn):
@@ -68,28 +66,30 @@ def translate(pos, trn):
     pos[1] += trn.y
     pos[2] += trn.z
 
-def rotateX(pos, angle):
-    pos[1] = pos[1]*cos(angle)) - pos[2]*sin(angle)
-    pos[2] = pos[1]*sin(angle)) + pos[2]*cos(angle)
+def rotateAxisX(pos, angle):
+    pos[1] = pos[1]*cos(angle) - pos[2]*sin(angle)
+    pos[2] = pos[1]*sin(angle) + pos[2]*cos(angle)
 
-def rotateY(pos, angle):
-    pos[0] = pos[2]*sin(angle)) + pos[0]*cos(angle)
-    pos[2] = pos[2]*cos(angle)) - pos[0]*sin(angle)
+def rotateAxisY(pos, angle):
+    pos[0] = pos[2]*sin(angle) + pos[0]*cos(angle)
+    pos[2] = pos[2]*cos(angle) - pos[0]*sin(angle)
 
-def rotateZ(pos, angle):
-    pos[0] = pos[0]*cos(angle)) - pos[1]*sin(angle)
-    pos[1] = pos[0]*sin(angle)) + pos[1]*cos(angle)
+def rotateAxisZ(pos, angle):
+    pos[0] = pos[0]*cos(angle) - pos[1]*sin(angle)
+    pos[1] = pos[0]*sin(angle) + pos[1]*cos(angle)
 
-def project(pos, lines, rotation, translation):
+def rotate(pos, rota):
+    rotateAxisX(pos, rota.x)
+    rotateAxisY(pos, rota.y)
+    rotateAxisZ(pos, rota.z)
+
+def project(pos, lines):
     pos_prj = []
     for i in pos:
         x_prj = i[0]
         y_prj = i[1]
-        z_prj = i[2]
-        translate([x_prj, y_prj, z_prj], translation)
-        rotateX([x_prj, y_prj, z_prj], rotation.x)
-        rotateY([x_prj, y_prj, z_prj], rotation.y)
-        rotateZ([x_prj, y_prj, z_prj], rotation.z)
+        x_prj += w/2
+        y_prj += h/2
         draw_point([x_prj, y_prj])
         pos_prj.append([x_prj, y_prj])
     for i in lines:
@@ -103,31 +103,44 @@ while run: #Game loop
             run = False
 
     if keys[pygame.K_t]:
-        rotateX(points, turn_angle)
+        rota_vec.x = turn_angle
     elif keys[pygame.K_g]:
-        rotateX(points, -turn_angle)
+        rota_vec.x = -turn_angle
+    else:
+        rota_vec.x = 0
     if keys[pygame.K_y]:
-        rotateY(points, turn_angle)
+        rota_vec.y = turn_angle
     elif keys[pygame.K_h]:
-        rotateY(points, -turn_angle)
+        rota_vec.y = -turn_angle
+    else:
+        rota_vec.y = 0
     if keys[pygame.K_u]:
-        rotateZ(points, turn_angle)
+        rota_vec.z = turn_angle
     elif keys[pygame.K_j]:
-        rotateZ(points, -turn_angle)
+        rota_vec.z = -turn_angle
+    else:
+        rota_vec.z = 0
 
     if keys[pygame.K_s]:
         trns_vec.y = cam_speed
     elif keys[pygame.K_w]:
-        trns_vec.y = cam_speed
+        trns_vec.y = -cam_speed
+    else:
+        trns_vec.y = 0
     if keys[pygame.K_d]:
         trns_vec.x = cam_speed
     elif keys[pygame.K_a]:
-        trns_vec.x = cam_speed
+        trns_vec.x = -cam_speed
+    else:
+        trns_vec.x = 0
 
     screen.fill(DDBLUE)
     draw_grid([0, 0], size, 50)
 
-    project(points, edges, trns_vec, rota_vec)
+    for i in points:
+        translate(i, trns_vec)
+        rotate(i, rota_vec)
+    project(points, edges)
 
     pygame.display.flip() #Update screen
     clock.tick(60)
