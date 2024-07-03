@@ -25,17 +25,23 @@ pygame.display.set_caption('3D Renderer')
 h = screen.get_height()
 w = screen.get_width()
 
-
-trns_vec = pygame.Vector3(0, 0, 0)
-rota_vec = pygame.Vector3(0, 0, 0)
-cam_speed = 4
-turn_angle = 0.1
-focal_length = 100
-
 def draw_grid(pos, area, size):
     for x in range(pos[0], pos[0]+area[0], size):
         for y in range(pos[1], pos[1]+area[1], size):
             pygame.draw.rect(screen, PEACOCK, pygame.Rect(x, y, size, size), 1)
+
+cam_speed = 5
+
+class Camera():
+    def __init__(self, x, y, z, z_offset, fov):
+        self.pos = [x, y, z]
+        self.fov = fov
+        self.z_offset = z_offset
+
+    def move(self, vec):
+        self.pos[0] += vec[0]
+        self.pos[1] += vec[1]
+        self.pos[2] += vec[2]
 
 class Cuboid():
     def __init__(self, x, y, z, w, h, d):
@@ -66,45 +72,15 @@ class Cuboid():
     def draw_edge(self, pos1, pos2):
         pygame.draw.line(screen, LBLUE, pos1, pos2, 7)
 
-    def translate(self, trn):
-        for pos in self.points:
-            pos[0] += trn.x
-            pos[1] += trn.y
-            pos[2] += trn.z
-
-    def pitch(self, pos, angle):
-        y = pos[1]
-        z = pos[2]
-        pos[1] = y*cos(angle) - z*sin(angle)
-        pos[2] = y*sin(angle) + z*cos(angle)
-
-    def yaw(self, pos, angle):
-        x = pos[0]
-        z = pos[2]
-        pos[0] = z*sin(angle) + x*cos(angle)
-        pos[2] = z*cos(angle) - x*sin(angle)
-
-    def roll(self, pos, angle):
-        x = pos[0]
-        y = pos[1]
-        pos[0] = x*cos(angle) - y*sin(angle)
-        pos[1] = x*sin(angle) + y*cos(angle)
-
-    def rotate(self, rota):
-        for pos in self.points:
-            self.pitch(pos, rota.x)
-            self.yaw(pos, rota.y)
-            self.roll(pos, rota.z)
-
-    def project(self, fcl):
+    def project(self, fov, z_off, cam_pos):
         pos_prj = []
         for i in self.points:
-            x = i[0]
-            y = i[1]
-            z = i[2]
+            x = i[0] - cam_pos[0]
+            y = i[1] - cam_pos[1]
+            z = i[2] - cam_pos[2]
             try:
-                x_prj = (x)+w/2
-                y_prj = (y)+h/2
+                x_prj = (x*fov)/(z+z_off)+w/2
+                y_prj = (y*fov)/(z+z_off)+h/2
             except:
                 x_prj = x
                 y_prj = y
@@ -113,7 +89,10 @@ class Cuboid():
         for i in self.lines:
             self.draw_edge(pos_prj[i[0]], pos_prj[i[1]])
 
-cube = Cuboid(0, 0, 100, 100, 100, 100)
+cube = Cuboid(-50, -50, -50, 100, 100, 100)
+shapes = [cube]
+
+cam = Camera(0, 0, 0, 200, w/2)
 
 while run: #Game loop
     keys = pygame.key.get_pressed()
@@ -122,49 +101,24 @@ while run: #Game loop
         if event.type == pygame.QUIT:
             run = False
 
-    if keys[pygame.K_t]:
-        rota_vec.x = turn_angle
-    elif keys[pygame.K_g]:
-        rota_vec.x = -turn_angle
-    else:
-        rota_vec.x = 0
-    if keys[pygame.K_y]:
-        rota_vec.y = turn_angle
-    elif keys[pygame.K_h]:
-        rota_vec.y = -turn_angle
-    else:
-        rota_vec.y = 0
-    if keys[pygame.K_u]:
-        rota_vec.z = turn_angle
-    elif keys[pygame.K_j]:
-        rota_vec.z = -turn_angle
-    else:
-        rota_vec.z = 0
-
     if keys[pygame.K_s]:
-        trns_vec.y = -cam_speed
+        cam.move([0, cam_speed, 0])
     elif keys[pygame.K_w]:
-        trns_vec.y = cam_speed
-    else:
-        trns_vec.y = 0
+        cam.move([0, -cam_speed, 0])
     if keys[pygame.K_d]:
-        trns_vec.x = -cam_speed
+        cam.move([cam_speed, 0, 0])
     elif keys[pygame.K_a]:
-        trns_vec.x = cam_speed
-    else:
-        trns_vec.x = 0
-
-    if keys[pygame.K_i]:
-        focal_length += cam_speed/2
-    elif keys[pygame.K_o]:
-        focal_length -= cam_speed/2
+        cam.move([-cam_speed, 0, 0])
+    if keys[pygame.K_UP]:
+        cam.move([0, 0, cam_speed])
+    elif keys[pygame.K_DOWN]:
+        cam.move([0, 0, -cam_speed])
 
     screen.fill(DDBLUE)
     draw_grid([0, 0], size, 50)
 
-    cube.translate(trns_vec)
-    cube.rotate(rota_vec)
-    cube.project(focal_length)
+    for shape in shapes:
+        shape.project(cam.fov, cam.z_offset, cam.pos)
 
     pygame.display.flip() #Update screen
     clock.tick(60)
