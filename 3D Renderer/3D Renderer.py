@@ -69,28 +69,34 @@ class Cuboid():
     def draw_point(self, pos):
         pygame.draw.circle(screen, WHITE, [pos[0], pos[1]], 7)
 
-    def draw_edge(self, pos1, pos2):
+    def draw_edge(self, pos1, pos2): 
         pygame.draw.line(screen, LBLUE, pos1, pos2, 7)
 
-    def project(self, fov, z_off, cam_pos):
+    def project(self, camera):
         pos_prj = []
         for i in self.points:
-            x = i[0] - cam_pos[0]
-            y = i[1] - cam_pos[1]
-            z = i[2] - cam_pos[2]
-            try:
-                x_prj = (x*fov)/(z+z_off)+w/2
-                y_prj = (y*fov)/(z+z_off)+h/2
-            except:
-                x_prj = x
-                y_prj = y
-            self.draw_point([x_prj, y_prj])
-            pos_prj.append([x_prj, y_prj])
+            x = i[0] - camera.pos[0]
+            y = i[1] - camera.pos[1]
+            z = i[2] - camera.pos[2]
+            if z + camera.z_offset > 0:
+                try:
+                    x_prj = (x*camera.fov)/(z+camera.z_offset)+w/2
+                    y_prj = (y*camera.fov)/(z+camera.z_offset)+h/2
+                except:
+                    x_prj = x
+                    y_prj = y
+                self.draw_point([x_prj , y_prj])
+                pos_prj.append([x_prj, y_prj])
+            else:
+                pos_prj.append(None)
         for i in self.lines:
-            self.draw_edge(pos_prj[i[0]], pos_prj[i[1]])
+            if pos_prj[i[0]] and pos_prj[i[1]]:
+                self.draw_edge(pos_prj[i[0]], pos_prj[i[1]])
 
-cube = Cuboid(-50, -50, -50, 100, 100, 100)
-shapes = [cube]
+cube = Cuboid(-50, -50, -50, 25, 100, 300)
+cube2 = Cuboid(-50, -50, 225, 350, 100, 25)
+cube3 = Cuboid(275, -50, -50, 25, 100, 300)
+shapes = [cube, cube2, cube3]
 
 cam = Camera(0, 0, 0, 200, w/2)
 
@@ -118,7 +124,7 @@ while run: #Game loop
     draw_grid([0, 0], size, 50)
 
     for shape in shapes:
-        shape.project(cam.fov, cam.z_offset, cam.pos)
+        shape.project(cam)
 
     pygame.display.flip() #Update screen
     clock.tick(60)
