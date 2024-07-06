@@ -2,6 +2,7 @@ import pygame #Modules
 import os
 import sys
 from math import*
+import numpy
 
 if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
     os.chdir(sys._MEIPASS)
@@ -10,7 +11,7 @@ os.environ['SDL_VIDEO_CENTERED'] = '1'
 #Color Constants
 PEACOCK = (3, 37, 45)
 DDBLUE = (0, 22, 22)
-LBLUE = (26, 170, 228)
+ORANG = (255, 128, 0)
 BLACK = (0, 0, 0)
 WHITE = (235, 235, 235)
 
@@ -37,12 +38,17 @@ class Camera():
     def __init__(self, x, y, z, fov):
         self.pos = [x, y, z]
         self.rota = [0, 0, 0]
+        self.angle = [0, 0, 0]
         self.fov = fov
 
-    def move(self, vec):
-        self.pos[0] += vec[0]
-        self.pos[1] += vec[1]
-        self.pos[2] += vec[2]
+    def move(self, trn):
+        vec = pygame.Vector3(trn)
+        vec = vec.rotate_x(-degrees(self.rota[0]))
+        vec = vec.rotate_y(-degrees(self.rota[1]))
+        vec = vec.rotate_z(degrees(self.rota[2]))
+        self.pos[0] += vec.x
+        self.pos[1] += vec.y
+        self.pos[2] += vec.z
 
     def pitch(self, angle):
         self.rota[0] += angle
@@ -85,7 +91,7 @@ class Cuboid():
         pygame.draw.circle(screen, WHITE, [pos[0], pos[1]], 7)
 
     def draw_edge(self, pos1, pos2): 
-        pygame.draw.line(screen, BLACK, pos1, pos2, 7)
+        pygame.draw.line(screen, ORANG, pos1, pos2, 7)
 
     def pitch(self, pos, angle):
         y = pos[1]
@@ -164,7 +170,10 @@ while run: #Game loop
         cam.move([0, cam_speed, 0])
 
     if keys[pygame.K_SPACE]:
-        cam.move([0, 0, cam_speed])
+        if keys[pygame.K_LSHIFT]:
+            cam.move([0, 0, -cam_speed])
+        else:
+            cam.move([0, 0, cam_speed])
 
     if keys[pygame.K_LEFT]:
         cam.yaw(turn_speed)
