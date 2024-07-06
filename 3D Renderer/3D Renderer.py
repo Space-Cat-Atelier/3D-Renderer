@@ -31,14 +31,13 @@ def draw_grid(pos, area, size):
             pygame.draw.rect(screen, PEACOCK, pygame.Rect(x, y, size, size), 1)
 
 cam_speed = 5
-turn_speed = 0.1
+turn_speed = 0.05
 
 class Camera():
-    def __init__(self, x, y, z, z_offset, fov):
+    def __init__(self, x, y, z, fov):
         self.pos = [x, y, z]
         self.rota = [0, 0, 0]
         self.fov = fov
-        self.z_offset = z_offset
 
     def move(self, vec):
         self.pos[0] += vec[0]
@@ -111,19 +110,25 @@ class Cuboid():
         rot_points = []
         for i in self.points:
             point = i.copy()
+            point[0] -= camera.pos[0]
+            point[1] -= camera.pos[1]
+            point[2] -= camera.pos[2]
             self.pitch(point, camera.rota[0])
             self.yaw(point, camera.rota[1])
             self.roll(point, camera.rota[2])
+            point[0] += camera.pos[0]
+            point[1] += camera.pos[1]
+            point[2] += camera.pos[2]
             rot_points.append(point)
 
         for i in rot_points:
             x = i[0] - camera.pos[0]
             y = i[1] - camera.pos[1]
             z = i[2] - camera.pos[2]
-            if z + camera.z_offset > 0:
+            if z > 0:
                 try:
-                    x_prj = (x*camera.fov)/(z+camera.z_offset)+w/2
-                    y_prj = (y*camera.fov)/(z+camera.z_offset)+h/2
+                    x_prj = (x*camera.fov)/z+w/2
+                    y_prj = (y*camera.fov)/z+h/2
                 except:
                     x_prj = x
                     y_prj = y
@@ -135,12 +140,12 @@ class Cuboid():
             if pos_prj[i[0]] and pos_prj[i[1]]:
                 self.draw_edge(pos_prj[i[0]], pos_prj[i[1]])
 
-cube1 = Cuboid(-50, -50, -50, 25, 100, 300)
-cube2 = Cuboid(-50, -50, 225, 300, 100, 25)
-cube3 = Cuboid(225, -50, -50, 25, 100, 300)
+cube1 = Cuboid(0, 0, 0, 25, 100, 300)
+cube2 = Cuboid(0, 0, 275, 300, 100, 25)
+cube3 = Cuboid(275, 0, 0, 25, 100, 300)
 shapes = [cube1, cube2, cube3]
 
-cam = Camera(0, 0, 0, 200, w/2)
+cam = Camera(0, 0, -200, w/2)
 
 while run: #Game loop
     keys = pygame.key.get_pressed()
@@ -149,23 +154,26 @@ while run: #Game loop
         if event.type == pygame.QUIT:
             run = False
 
-    if keys[pygame.K_s]:
-        cam.move([0, cam_speed, 0])
-    elif keys[pygame.K_w]:
-        cam.move([0, -cam_speed, 0])
     if keys[pygame.K_d]:
         cam.move([cam_speed, 0, 0])
     elif keys[pygame.K_a]:
         cam.move([-cam_speed, 0, 0])
-    if keys[pygame.K_UP]:
+    if keys[pygame.K_w]:
+        cam.move([0, -cam_speed, 0])
+    elif keys[pygame.K_s]:
+        cam.move([0, cam_speed, 0])
+
+    if keys[pygame.K_SPACE]:
         cam.move([0, 0, cam_speed])
-    elif keys[pygame.K_DOWN]:
-        cam.move([0, 0, -cam_speed])
 
     if keys[pygame.K_LEFT]:
         cam.yaw(turn_speed)
     elif keys[pygame.K_RIGHT]:
         cam.yaw(-turn_speed)
+    if keys[pygame.K_UP]:
+        cam.pitch(-turn_speed)
+    elif keys[pygame.K_DOWN]:
+        cam.pitch(turn_speed)
 
     screen.fill(DDBLUE)
     draw_grid([0, 0], size, 50)
