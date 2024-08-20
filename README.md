@@ -1,8 +1,8 @@
-# 3D Renderer
-A 3D Renderer made in Python using the Pygame module.
+# 3D Renderer in Python
+This is a 3D Renderer made in Python using the Pygame module.
 
-This project took quite some time to comlpete, but here it is! You use the WASD keys to move around, UP and DOWN keys to move forward and backward, and LEFT and RIGHT keys to turn. You can also upload your own .obj files into this as well.
+_WASD to move the camera, UP and DOWN to move the camera forward and backwards and LEFT and RIGHT to turn the camera._
 
-Overall, I think I did a pretty good job on this!
+https://github.com/user-attachments/assets/a85e1dd4-d037-4503-be38-a10db6b310a5
 
-![shwocase](https://github.com/user-attachments/assets/58b2105e-1620-44ee-9b5c-82fba15ca41e)
+
