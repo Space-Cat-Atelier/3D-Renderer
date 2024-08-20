@@ -5,6 +5,4 @@ This project took quite some time to comlpete, but here it is! You use the WASD 
 
 Overall, I think I did a pretty good job on this!
 
-Here is a screenshot of me using an .obj file of an apple:
-
-![Apple](https://github.com/Space-Cat-Atelier/3D-Renderer/assets/139983936/13f98cf8-f386-4dfb-8595-6887684d709a)
+![shwocase](https://github.com/user-attachments/assets/58b2105e-1620-44ee-9b5c-82fba15ca41e)
