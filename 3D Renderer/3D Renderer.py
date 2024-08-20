@@ -34,7 +34,15 @@ cam_speed = 0.1
 turn_speed = 0.05
 
 get_screen(screen)
-shapes = [get_obj('Object Files\\apple_obj.obj')]
+shapes = [get_obj('Object Files\\object.obj')]
+
+arguments = sys.argv
+try:
+    if len(sys.argv) > 1:
+        shapes = [get_obj(sys.argv[1])]
+except:
+    shapes = [get_obj('Object Files\\object.obj')]
+    
 shapes[0].rotate([0, 0, radians(180)])
 
 cam = Camera(0, 0, -10, w/2)
